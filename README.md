@@ -19,6 +19,7 @@ This project is still a work in progress. Main functionality is implemented, the
 * For searching, the app works with the default shortcut for Wox (alternative window search program, powered by versatile Everything, because the Windows 10 search is always broken - https://github.com/Wox-launcher/Wox); that is, Alt + Space
 * Pressing on a live thumbnail will bring that window to the foreground
 * Pressing anywhere on the "desktop", or Escape will dismiss overview
+* Developed and tested on Windows 10, but it should work on Windows 7 (with Windows Aero enabled, otherwise Windows 8) and newer.
 
 ## To do
 * Improve performance (especially on animations)
