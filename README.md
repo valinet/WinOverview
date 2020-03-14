@@ -3,6 +3,8 @@ WinOverview is a reproduction of the GNOME Activities (Overview) for Microsoft W
 
 This project is still a work in progress. Main functionality is implemented, the program behaves like the original GNOME Activities, but there are still some quirks to be ironed out.
 
+![Screenshot](/docs/screenshot.png?raw=true "Screenshot")
+
 ## Configuration
 * Clone project
 * Compile - I used Visual Studio 2019, so Build Tools v17, cl v19 and Windows 10 SDK version 10.0.18362.0
