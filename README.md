@@ -12,10 +12,13 @@ Open solution in Visual Studio 2019 and hit compile.
 * Install Build Tools for Visual Studio 2019 from: https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16 - when installing, make sure to install a Windows 10 SDK as well
 * After installation, hit Start and type to open Developer Command Prompt for Visual Studio 2019.
 * Go to cloned folder and enter subdirectory "Overview" (where source files .cpp and header files .h will be present)
-* Issue a command like the following (it will generate Overview.exe):
-> cl /nologo /DUNICODE Overview.cpp workspace.cpp /FeOverview.exe /link user32.lib gdi32.lib ole32.lib dwmapi.lib
+* First, compile the resources (icon and version info) into a resource file:
+> rc Overview.rc
+* Then, issue a command like the following (it will generate Overview.exe):
+> cl /nologo /DUNICODE Overview.cpp workspace.cpp /FeOverview.exe /link Overview.res user32.lib gdi32.lib ole32.lib dwmapi.lib
 * If it does not work, maybe the compiler does not see either the header path, the libraries path, or both; issue a command like the following - replace those paths with locations for Windows header files and libs:
 > cl /nologo /DUNICODE /I"C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um" Overview.cpp workspace.cpp /FeOverview.exe /link /LIBPATH:"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.18362.0\um\x64" user32.lib gdi32.lib ole32.lib dwmapi.lib
+* You can change the app icon by replacing the "icon.ico" with your own icon file and recompiling - I included the default icon that Visual Studio suggests due to licensing issues
 
 ## Configuration
 * Clone project
