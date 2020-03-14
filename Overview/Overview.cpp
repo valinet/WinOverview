@@ -25,6 +25,7 @@
 #include "constants.h"
 #include "structs.h"
 #include "utils.h"
+#include "resource.h"
 
 #pragma comment(lib, "Dwmapi.lib")
 
@@ -72,7 +73,9 @@ bool SortSlotsByHwndZOrder(Slot s1, Slot s2);
 
 std::vector<AnimationThreadArguments*>* animations = NULL;
 
+#ifdef HIDE_TASKBAR_ICON
 Microsoft::WRL::ComPtr<ITaskbarList3> taskbar;
+#endif
 
 BOOL enteredSearch = FALSE;
 BOOL clicked = FALSE;
@@ -116,12 +119,14 @@ void overview(HINSTANCE hInstance) {
     animations = NEW std::vector<AnimationThreadArguments*>;
 
     // we need this so that we do not spawn a button in the taskbar
+#ifdef HIDE_TASKBAR_ICON
     CoInitialize(NULL);
     HRESULT result = CoCreateInstance(
         CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&taskbar));
     if (result == S_OK) {
         taskbar->HrInit();
     }
+#endif
 
     // spawn a "desktop" window onto which we draw the live previews for each monitor
     for (int monitorNo = 0; monitorNo < monitors.size(); ++monitorNo) {
@@ -158,9 +163,11 @@ void overview(HINSTANCE hInstance) {
             winProcInfo      // Additional application data
         );
         // hide taskbar button
+#ifdef HIDE_TASKBAR_ICON
         if (result == S_OK) {
             taskbar->DeleteTab(hWnd);
         }
+#endif
 
         // make this top most
         SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -517,6 +524,9 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
         info = reinterpret_cast<WindowProcInfo*>(pCreate->lpCreateParams);
         SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)info);
+        HINSTANCE hInstance = pCreate->hInstance;
+        HICON hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
+        SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
     }
     else
     {
@@ -717,6 +727,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 SendInput(1, &ip, sizeof(INPUT));
             }
 
+            Sleep(10);
+
             FadeThumbnailParams* params = NEW FadeThumbnailParams;
             params->delay_ms = 1000.0 / FPS;
             params->isOpening = FALSE;
@@ -806,8 +818,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     DestroyWindow(hwnds.at(i));
                 }
             }
+#ifdef HIDE_TASKBAR_ICON
             taskbar->Release();
             CoUninitialize();
+#endif
             animations = NULL;
         }
         break;
