@@ -20,7 +20,4 @@
 
 #define WM_THREAD_DONE (WM_USER + 0x0001)
 
-#define HIDE_TASKBAR_ICON
-#undef HIDE_TASKBAR_ICON
-
 const wchar_t CLASS_NAME[] = TEXT("ActivitiesDesktopWindow");

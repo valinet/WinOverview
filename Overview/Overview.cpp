@@ -73,7 +73,7 @@ bool SortSlotsByHwndZOrder(Slot s1, Slot s2);
 
 std::vector<AnimationThreadArguments*>* animations = NULL;
 
-#ifdef HIDE_TASKBAR_ICON
+#ifndef SHOW_TASKBAR_ICON
 Microsoft::WRL::ComPtr<ITaskbarList3> taskbar;
 #endif
 
@@ -119,7 +119,7 @@ void overview(HINSTANCE hInstance) {
     animations = NEW std::vector<AnimationThreadArguments*>;
 
     // we need this so that we do not spawn a button in the taskbar
-#ifdef HIDE_TASKBAR_ICON
+#ifndef SHOW_TASKBAR_ICON
     CoInitialize(NULL);
     HRESULT result = CoCreateInstance(
         CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&taskbar));
@@ -163,7 +163,7 @@ void overview(HINSTANCE hInstance) {
             winProcInfo      // Additional application data
         );
         // hide taskbar button
-#ifdef HIDE_TASKBAR_ICON
+#ifndef SHOW_TASKBAR_ICON
         if (result == S_OK) {
             taskbar->DeleteTab(hWnd);
         }
@@ -818,7 +818,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     DestroyWindow(hwnds.at(i));
                 }
             }
-#ifdef HIDE_TASKBAR_ICON
+#ifndef SHOW_TASKBAR_ICON
             taskbar->Release();
             CoUninitialize();
 #endif
