@@ -46,7 +46,7 @@ void computeWindowSlots(Layout* layout, RECT area, std::vector<Slot>& slots) {
     // keep track how much smaller the grid becomes due to scaling
     // so it can be centered again
     double compensation = 0;
-    int y = 0;
+    double y = 0;
 
     for (int i = 0; i < rows.size(); ++i) {
         Row& row = rows.at(i);
@@ -77,7 +77,7 @@ void computeWindowSlots(Layout* layout, RECT area, std::vector<Slot>& slots) {
 
     for (int i = 0; i < rows.size(); ++i) {
         Row& row = rows.at(i);
-        int x = row.x;
+        double x = row.x;
         for (int j = 0; j < row.windows.size(); ++j) {
             WindowInfo& window = row.windows.at(j);
 
