@@ -5,9 +5,21 @@ This project is still a work in progress. Main functionality is implemented, the
 
 ![Screenshot](/docs/screenshot.png?raw=true "Screenshot")
 
+## Compiling
+### Method 1 - using Visual Studio
+Open solution in Visual Studio 2019 and hit compile.
+### Method 2 - without Visual Studio, just Microsoft C++ compiler
+* Install Build Tools for Visual Studio 2019 from: https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16 - when installing, make sure to install a Windows 10 SDK as well
+* After installation, hit Start and type to open Developer Command Prompt for Visual Studio 2019.
+* Go to cloned folder and enter subdirectory "Overview" (where source files .cpp and header files .h will be present)
+* Issue a command like the following (it will generate Overview.exe):
+> cl /nologo /DUNICODE Overview.cpp workspace.cpp /FeOverview.exe /link user32.lib gdi32.lib ole32.lib dwmapi.lib
+* If it does not work, maybe the compiler does not see either the header path, the libraries path, or both; issue a command like the following - replace those paths with locations for Windows header files and libs:
+> cl /nologo /DUNICODE /I"C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\um" Overview.cpp workspace.cpp /FeOverview.exe /link /LIBPATH:"C:\Program Files (x86)\Windows Kits\10\Lib\10.0.18362.0\um\x64" user32.lib gdi32.lib ole32.lib dwmapi.lib
+
 ## Configuration
 * Clone project
-* Compile - I used Visual Studio 2019, so Build Tools v17, cl v19 and Windows 10 SDK version 10.0.18362.0
+* Compile - I used Visual Studio 2019, so Build Tools v16, cl v19 and Windows 10 SDK version 10.0.18362.0
 * Run app - when opening, it will automatically display the 'overview' screen; if you execute the app again, it will close the already opened overview, so you could configure a key to launch the application and it would toggle between overview and normal mode, just like on GNOME - I used AutoHotKey like so:
 > LWin & vk07::Run "C:\Users\Valentin\Documents\Visual Studio 2019\Projects\Overview\x64\Release\Overview.exe"
 >
