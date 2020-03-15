@@ -179,6 +179,31 @@ void overview(HINSTANCE hInstance) {
         params.monitor = monitors.at(monitorNo);
         EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&params));
 
+        if (windows.size() == 0) {
+            INPUT ip;
+            ip.type = INPUT_KEYBOARD;
+            ip.ki.wScan = 0;
+            ip.ki.time = 0;
+            ip.ki.dwExtraInfo = 0;
+
+            ip.ki.wVk = VK_MENU;
+            ip.ki.dwFlags = 0;
+            SendInput(1, &ip, sizeof(INPUT));
+
+            ip.ki.wVk = VK_SPACE;
+            ip.ki.dwFlags = 0;
+            SendInput(1, &ip, sizeof(INPUT));
+
+            ip.ki.wVk = VK_SPACE;
+            ip.ki.dwFlags = KEYEVENTF_KEYUP;
+            SendInput(1, &ip, sizeof(INPUT));
+
+            ip.ki.wVk = VK_MENU;
+            ip.ki.dwFlags = KEYEVENTF_KEYUP;
+            SendInput(1, &ip, sizeof(INPUT));
+            exit(0);
+        }
+
         // compute positions for windows
         Layout lastLayout;
         lastLayout.scale = -1;
@@ -860,10 +885,10 @@ BOOL IsAltTabWindow(
         return FALSE;
 
     // the following removes some task tray programs and "Program Manager"
-    ti.cbSize = sizeof(ti);
-    GetTitleBarInfo(hwnd, &ti);
-    if (ti.rgstate[0] & STATE_SYSTEM_INVISIBLE)
-        return FALSE;
+    //ti.cbSize = sizeof(ti);
+    //GetTitleBarInfo(hwnd, &ti);
+    //if (ti.rgstate[0] & STATE_SYSTEM_INVISIBLE)
+    //    return FALSE;
 
     // Tool windows should not be displayed either, these do not appear in the
     // task bar.
