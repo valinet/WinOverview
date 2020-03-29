@@ -157,7 +157,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
             TCHAR szModName[MAX_PATH];
             GetModuleFileNameEx(processInfo.hProcess, hMods[i], szTmpLibPath, _MAX_PATH);
             CharLower(szTmpLibPath);
-            if (wcsstr(szTmpLibPath, szLibPath))
+            if (!wcscmp(szTmpLibPath, szLibPath))
             {
                 break;
             }

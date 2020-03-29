@@ -179,7 +179,7 @@ DWORD WINAPI run(LPVOID lpParam)
     {
         while (Process32Next(snapshot, &entry) == TRUE)
         {
-            if (wcsstr(entry.szExeFile, L"explorer.exe"))
+            if (!wcscmp(entry.szExeFile, L"explorer.exe"))
             {
                 HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
 
@@ -290,7 +290,7 @@ BOOL CALLBACK EnumWindowsAskMouse(
 {
     TCHAR name[200];
     GetClassName(hwnd, name, 200);
-    if (wcsstr(name, CLASS_NAME))
+    if (!wcscmp(name, CLASS_NAME))
     {
         MSLLHOOKSTRUCT* info = reinterpret_cast<MSLLHOOKSTRUCT*>(lParam);
         SendMessage(hwnd, WM_ASK_MOUSE, TRUE, MAKELPARAM(info->pt.x, info->pt.y));
