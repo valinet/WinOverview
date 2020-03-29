@@ -250,6 +250,8 @@ DWORD WINAPI run(LPVOID lpParam)
                     );
 
                 CloseHandle(hProcess);
+
+                break;
             }
         }
     }

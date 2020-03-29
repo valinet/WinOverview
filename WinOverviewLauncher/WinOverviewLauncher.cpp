@@ -193,5 +193,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
     CloseHandle(processInfo.hProcess);
     CloseHandle(processInfo.hThread);
+    CloseHandle(hJob);
     return 0;
 }
