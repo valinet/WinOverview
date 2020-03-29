@@ -168,7 +168,7 @@ DWORD WINAPI run(LPVOID lpParam)
     BOOL bResult = FALSE;
     void* pLibRemote = NULL;
     DWORD hLibModule = 0;
-    char szHostPath[_MAX_PATH];
+    char szHostPath[_MAX_PATH + 2 * sizeof(char)];
 
     PROCESSENTRY32 entry;
     entry.dwSize = sizeof(PROCESSENTRY32);
@@ -185,13 +185,14 @@ DWORD WINAPI run(LPVOID lpParam)
 
                 GetModuleFileNameA(
                     GetModuleHandle(NULL),
-                    szHostPath,
+                    szHostPath + sizeof(char),
                     _MAX_PATH
                     );
-                PathRemoveFileSpecA(szHostPath);
+                PathRemoveFileSpecA(szHostPath + sizeof(char));
+                szHostPath[0] = '\"';
                 strcat_s(
                     szHostPath,
-                    "\\WinOverviewLauncher.exe"
+                    "\\WinOverviewLauncher.exe\""
                     );
 
                 pLibRemote = VirtualAllocEx(

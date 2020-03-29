@@ -21,7 +21,7 @@ WinOverview is a reproduction of the GNOME Activities (Overview) for Microsoft W
 * Settings file/Configuration UI
 
 ## Known issues
-* Tere is a small bug when clicking outside the search box - your click will go to the window that is located there underneath the overview screen as well; will be fixed in a future version
+* There is a small bug when clicking outside the search box - your click will go to the window that is located there underneath the overview screen as well; will be fixed in a future version
 * Due to my inexperience with how to actually do animations, and the "sleeping" methods used, the animation may lag or skip frames when the CPU is under high load - I am looking for some help here in order to improve things; otherwise, it performs better than Win+Tab which is always glitchy and does not open windows at the proper locations initially
 
 ## Inner workings (in no particular order)
