@@ -183,75 +183,78 @@ DWORD WINAPI run(LPVOID lpParam)
             {
                 HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, entry.th32ProcessID);
 
-                GetModuleFileNameA(
-                    GetModuleHandle(NULL),
-                    szHostPath + sizeof(char),
-                    _MAX_PATH
-                    );
-                PathRemoveFileSpecA(szHostPath + sizeof(char));
-                szHostPath[0] = '\"';
-                strcat_s(
-                    szHostPath,
-                    "\\WinOverviewLauncher.exe\""
-                    );
+                if (hProcess)
+                {
+                    GetModuleFileNameA(
+                        GetModuleHandle(NULL),
+                        szHostPath + sizeof(char),
+                        _MAX_PATH
+                        );
+                    PathRemoveFileSpecA(szHostPath + sizeof(char));
+                    szHostPath[0] = '\"';
+                    strcat_s(
+                        szHostPath,
+                        "\\WinOverviewLauncher.exe\""
+                        );
 
-                pLibRemote = VirtualAllocEx(
-                    hProcess,
-                    NULL,
-                    sizeof(szHostPath),
-                    MEM_COMMIT,
-                    PAGE_READWRITE
-                    );
-                assert(pLibRemote != NULL);
+                    pLibRemote = VirtualAllocEx(
+                        hProcess,
+                        NULL,
+                        sizeof(szHostPath),
+                        MEM_COMMIT,
+                        PAGE_READWRITE
+                        );
+                    assert(pLibRemote != NULL);
 
-                bResult = WriteProcessMemory(
-                    hProcess,
-                    pLibRemote,
-                    (void*)szHostPath,
-                    sizeof(szHostPath),
-                    NULL
-                    );
-                assert(bResult == TRUE);
+                    bResult = WriteProcessMemory(
+                        hProcess,
+                        pLibRemote,
+                        (void*)szHostPath,
+                        sizeof(szHostPath),
+                        NULL
+                        );
+                    assert(bResult == TRUE);
 
-                hThread = CreateRemoteThread(
-                    hProcess,
-                    NULL,
-                    0,
-                    (LPTHREAD_START_ROUTINE)hAdrWinExec,
-                    pLibRemote,
-                    CREATE_SUSPENDED,
-                    NULL
-                    );
-                assert(hThread != NULL);
+                    hThread = CreateRemoteThread(
+                        hProcess,
+                        NULL,
+                        0,
+                        (LPTHREAD_START_ROUTINE)hAdrWinExec,
+                        pLibRemote,
+                        CREATE_SUSPENDED,
+                        NULL
+                        );
+                    assert(hThread != NULL);
 
-                ResumeThread(
-                    hThread
-                    );
+                    ResumeThread(
+                        hThread
+                        );
 
-                WaitForSingleObject(
-                    hThread,
-                    INFINITE
-                    );
+                    WaitForSingleObject(
+                        hThread,
+                        INFINITE
+                        );
 
-                GetExitCodeThread(
-                    hThread,
-                    &hLibModule
-                    );
+                    GetExitCodeThread(
+                        hThread,
+                        &hLibModule
+                        );
 
-                UnhookWindowsHookEx(mouseHook);
-                mouseHook = NULL;
-                //printf("WinExec: %d\n", hLibModule);
+                    UnhookWindowsHookEx(mouseHook);
+                    mouseHook = NULL;
+                    //printf("WinExec: %d\n", hLibModule);
 
-                VirtualFreeEx(
-                    hProcess,
-                    (LPVOID)pLibRemote,
-                    0,
-                    MEM_RELEASE
-                    );
+                    VirtualFreeEx(
+                        hProcess,
+                        (LPVOID)pLibRemote,
+                        0,
+                        MEM_RELEASE
+                        );
 
-                CloseHandle(hProcess);
+                    CloseHandle(hProcess);
 
-                break;
+                    break;
+                }
             }
         }
     }
