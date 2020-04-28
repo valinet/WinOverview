@@ -142,6 +142,7 @@
     <ClCompile Include="WinOverview.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NtUserBuildHwndList.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

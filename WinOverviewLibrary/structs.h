@@ -36,6 +36,7 @@ struct MonitorInfo {
     HANDLE hAnimThread;
     HTHUMBNAIL hSearchThumb;
     HWND hSearchHWnd;
+    SIZE* wallpaperOffset;
 };
 
 struct WindowInfo {

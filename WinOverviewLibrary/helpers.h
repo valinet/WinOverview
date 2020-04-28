@@ -123,6 +123,7 @@ typedef BOOL(WINAPI* pfnSetWindowCompositionAttribute)(HWND, WINDOWCOMPOSITIONAT
 
 struct GetMonitorsParams {
 	std::vector<MonitorInfo>* monitors;
+	SIZE* offset;
 };
 
 struct EnumWindowProcParam {

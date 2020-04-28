@@ -16,6 +16,7 @@ void GetMonitors(
 {
 	GetMonitorsParams monitorParams;
 	monitorParams.monitors = monitors;
+    monitorParams.offset = reinterpret_cast<SIZE*>(malloc(sizeof(SIZE)));
 	EnumDisplayMonitors(
 		NULL,
 		NULL,
@@ -58,6 +59,15 @@ BOOL CALLBACK EnumDisplayMonitorsCallback(
     info.hAnimThread = NULL;
     info.hSearchThumb = NULL;
     info.hSearchHWnd = NULL;
+    if (monitorInfo.rcMonitor.left < params->offset->cx)
+    {
+        params->offset->cx = monitorInfo.rcMonitor.left;
+    }
+    if (monitorInfo.rcMonitor.top < params->offset->cy)
+    {
+        params->offset->cy = monitorInfo.rcMonitor.top;
+    }
+    info.wallpaperOffset = params->offset;
 
     params->monitors->push_back(info);
     return TRUE;
@@ -477,7 +487,7 @@ void ShowSearch(
     _In_ WPARAM wParam
     )
 {
-    if (DoAnimate(FALSE, ANIMTYPE_PREVIEW_FADE, info, FALSE))
+    if (DoAnimate(TRUE, ANIMTYPE_PREVIEW_FADE, info, FALSE))
     {
         INPUT ip;
         ip.type = INPUT_KEYBOARD;
@@ -508,29 +518,7 @@ void ShowSearch(
             GetClassName(fWnd, name, 100);
         } while (!wcsstr(name, TEXT("Windows.UI.Core.CoreW")));
 
-        info->hSearchHWnd = fWnd;
-
-        RECT rect;
-        GetWindowRect(fWnd, &rect);
-        info->rcSearch = rect;
-        SetWindowPos(
-            fWnd,
-            fWnd,
-            info->area.left + (info->area.right - info->area.left) / 2 - (rect.right - rect.left) / 2,
-            info->area.top + (info->area.bottom - info->area.top) / 2 - (rect.bottom - rect.top) / 2,
-            0,
-            0,
-            SWP_NOZORDER | SWP_NOSIZE
-            );
-
-        POINT pt;
-        GetCursorPos(&pt);
-        //if (pt.x >= rect.left && pt.x <= rect.right && pt.y >= rect.top && pt.y <= rect.bottom)
-        //{
-            LONG styles = GetWindowLong(info->hWnd, GWL_EXSTYLE);
-            SetWindowLong(info->hWnd, GWL_EXSTYLE, styles | WS_EX_TRANSPARENT);
-            SetWindowPos(info->hWnd, 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
-        //}
+        Sleep(50);
 
         if (wParam != NULL)
         {
@@ -555,5 +543,29 @@ void ShowSearch(
                 SendInput(1, &ip, sizeof(INPUT));
             }
         }
+
+        info->hSearchHWnd = fWnd;
+
+        RECT rect;
+        GetWindowRect(fWnd, &rect);
+        info->rcSearch = rect;
+        SetWindowPos(
+            fWnd,
+            fWnd,
+            info->area.left + (info->area.right - info->area.left) / 2 - (rect.right - rect.left) / 2,
+            info->area.top + (info->area.bottom - info->area.top) / 2 - (rect.bottom - rect.top) / 2,
+            0,
+            0,
+            SWP_NOZORDER | SWP_NOSIZE
+            );
+
+        POINT pt;
+        GetCursorPos(&pt);
+        //if (pt.x >= rect.left && pt.x <= rect.right && pt.y >= rect.top && pt.y <= rect.bottom)
+        //{
+            //LONG styles = GetWindowLong(info->hWnd, GWL_EXSTYLE);
+            //SetWindowLong(info->hWnd, GWL_EXSTYLE, styles | WS_EX_TRANSPARENT);
+            //SetWindowPos(info->hWnd, 0, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+        //}
     }
 }

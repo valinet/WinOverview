@@ -8,6 +8,27 @@
 #include <sddl.h>
 #pragma comment(lib, "Shlwapi.lib")
 
+#include "../WinOverviewLibrary/constants.h"
+#include "../WinOverview/NtUserBuildHwndList.h"
+
+NtUserBuildHwndList pNtUserBuildHwndList = NULL;
+BOOL alreadyRunning = FALSE;
+
+BOOL CALLBACK EnumWindowsSendMessage(
+    _In_ HWND   hwnd,
+    _In_ LPARAM lParam
+    )
+{
+    TCHAR name[200];
+    GetClassName(hwnd, name, 200);
+    if (!wcscmp(name, CLASS_NAME))
+    {
+        SendMessage(hwnd, WM_CLOSE, lParam, 0);
+        alreadyRunning = TRUE;
+    }
+    return TRUE;
+}
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
     FILE* conout;
@@ -27,6 +48,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     unsigned int i;
     HMODULE hInjectionDll;
     FARPROC hInjectionMainFunc;
+    HMODULE hpath;
 
     /*
     if (!AllocConsole())
@@ -40,6 +62,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     bResult = SetProcessDpiAwarenessContext(
         DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
         );
+
+    hpath = LoadLibrary(L"win32u.dll");
+    pNtUserBuildHwndList = NtUserBuildHwndList(GetProcAddress(hpath, "NtUserBuildHwndList"));
+    Gui_RealEnumWindows(pNtUserBuildHwndList, EnumWindowsSendMessage, reinterpret_cast<LPARAM>(reinterpret_cast<LPVOID>(0)));
+    if (alreadyRunning) exit(0);
 
     GetSystemDirectory(
         szHostPath,

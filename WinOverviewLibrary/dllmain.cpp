@@ -24,7 +24,38 @@ auto simpleWindowClass = NULL;
 auto bkgWindowClass = NULL;
 HWND previous = NULL;
 
+HWINEVENTHOOK fwndHook = NULL;
+HWND mainHwnd = NULL;
+HWND bkgHwnd = NULL;
+
 std::vector<MonitorInfo> monitors;
+
+void DetectSearchDismiss(
+	HWINEVENTHOOK hWinEventHook,
+	DWORD event,
+	HWND hwnd,
+	LONG idObject,
+	LONG idChild,
+	DWORD idEventThread,
+	DWORD dwmsEventTime
+	)
+{
+	TCHAR name[100];
+	GetClassName(hwnd, name, 100);
+	if (!wcsstr(name, TEXT("HwndWrapper[DefaultDomain;;")) && !wcsstr(name, TEXT("Windows.UI.Core.CoreW")) && wcscmp(name, CLASS_NAME_BKG)) {
+		UnhookWinEvent(
+			fwndHook
+			);
+		fwndHook = NULL;
+
+		ShowWindow(mainHwnd, SW_SHOW);
+		PostMessage(mainHwnd, WM_CLOSE, 1, 0);
+		PostMessage(bkgHwnd, WM_CLOSE, 0, 0);
+
+		mainHwnd = NULL;
+		bkgHwnd = NULL;
+	}
+}
 
 DWORD WINAPI CheckSearch(
 	_Inout_ LPVOID lpParam
@@ -88,6 +119,32 @@ LRESULT CALLBACK WindowProcBkg(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 	}
 	switch (uMsg)
 	{
+	case WM_ACTIVATE:
+	{
+		if (info->hSearchHWnd && wParam == WA_ACTIVE)
+		{
+			BOOL bRet;
+			if (BeginAnimateUpdate(info))
+			{
+				ShowWindow(info->hWnd, SW_SHOW);
+				PostMessage(info->hWnd, WM_CLOSE, 0, 0);
+				PostMessage(hWnd, WM_CLOSE, 0, 0);
+
+				bRet = DoAnimate(TRUE, ANIMTYPE_PREVIEW_FADE, info, TRUE);
+
+				info->hSearchHWnd = NULL;
+			}
+			return bRet;
+		}
+		break;
+	}
+	case WM_LBUTTONUP:
+	{
+		ShowWindow(info->hWnd, SW_SHOW);
+		PostMessage(info->hWnd, WM_CLOSE, 0, 0);
+		PostMessage(hWnd, WM_CLOSE, 0, 0);
+		break;
+	}
 	case WM_NCHITTEST:
 	{
 		int xPos = GET_X_LPARAM(lParam);
@@ -175,6 +232,16 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	*/
+	case WM_NCHITTEST:
+	{
+		int xPos = GET_X_LPARAM(lParam);
+		int yPos = GET_Y_LPARAM(lParam);
+		if (xPos < 10 && yPos < 10)
+		{
+			return HTCAPTION;
+		}
+		break;
+	}
 	case WM_CLOSE:
 		if (wParam == 99)
 		{
@@ -220,8 +287,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				BOOL bRet;
 				if (BeginAnimateUpdate(info))
 				{
-					DwmUnregisterThumbnail(info->hSearchThumb);
-					info->hSearchThumb = NULL;
+					//DwmUnregisterThumbnail(info->hSearchThumb);
+					//info->hSearchThumb = NULL;
 					bRet = DoAnimate(TRUE, ANIMTYPE_PREVIEW_FADE, info, TRUE);
 
 					SetForegroundWindow(hWnd);
@@ -277,8 +344,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			info->realArea.right - info->realArea.left,
 			info->realArea.bottom - info->realArea.top,
 			wallpaperHdc,
-			info->realArea.left,
-			info->realArea.top,
+			info->realArea.left - info->wallpaperOffset->cx,
+			info->realArea.top - info->wallpaperOffset->cy,
 			SRCCOPY
 			);
 
@@ -306,11 +373,14 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 			case ANIMTYPE_PREVIEW_FADE:
 			{
-				RECT rect = GetSearchRect(info);
 
-				info->hSearchThumb = RegisterLiveThumbnail(
-					hWnd, info->hSearchHWnd, rect
-					);
+				ShowWindow(info->hWnd, SW_HIDE);
+				//PostMessage(h, WM_CLOSE, 0, 0);
+				//RECT rect = GetSearchRect(info);
+
+				//info->hSearchThumb = RegisterLiveThumbnail(
+				//	hWnd, info->hSearchHWnd, rect
+				//	);
 
 				EndAnimateUpdate(info);
 				return TRUE;
@@ -347,22 +417,57 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		EndAnimateUpdate(info);
 		printf("%d\n", GetForegroundWindow());
 		break;
-
+	case WM_KEYUP:
+	{
+		if (wParam == VK_ESCAPE)
+		{
+			PostMessage(hWnd, WM_CLOSE, 0, 0);
+		}
+		break;
+	}
 	case WM_KEYDOWN:
 	{
 		if (((wParam >= 'a' && wParam <= 'z') ||
 			(wParam >= 'A' && wParam <= 'Z') ||
 			(wParam >= '0' && wParam <= '9') ||
-			(wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9) || wParam == VK_SPACE))
+			(wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9) || wParam == VK_SPACE) && fwndHook == NULL)
 		{
-			ShowSearch(info, wParam);
+			if (BeginAnimateUpdate(info))
+			{
+				mainHwnd = hWnd;
+				fwndHook = SetWinEventHook(
+					EVENT_SYSTEM_FOREGROUND,
+					EVENT_SYSTEM_FOREGROUND,
+					NULL,
+					DetectSearchDismiss,
+					0,
+					0,
+					WINEVENT_OUTOFCONTEXT
+					);
+				bkgHwnd = CreateWindowEx(
+					WS_EX_TOOLWINDOW,
+					CLASS_NAME_BKG,
+					NULL,
+					WS_POPUP,
+					info->realArea.left, info->realArea.top, info->realArea.right - info->realArea.left, info->realArea.bottom - info->realArea.top,
+					NULL,
+					NULL,
+					NULL,
+					info
+					);
+				ShowWindow(bkgHwnd, SW_NORMAL);
+				ShowSearch(info, wParam);
+			}
 		}
 		break;
 	}
 
 	case WM_SHOW_SEARCH:
 	{
-		ShowSearch(info, wParam);
+		if (BeginAnimateUpdate(info))
+		{
+			ShowSearch(info, wParam);
+		}
 		break;
 	}
 
@@ -496,8 +601,8 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					if (BeginAnimateUpdate(info))
 					{
-						DwmUnregisterThumbnail(info->hSearchThumb);
-						info->hSearchThumb = NULL;
+						//DwmUnregisterThumbnail(info->hSearchThumb);
+						//info->hSearchThumb = NULL;
 						DoAnimate(TRUE, ANIMTYPE_PREVIEW_FADE, info, TRUE);
 						
 						SetForegroundWindow(hWnd);
@@ -730,6 +835,7 @@ __declspec(dllexport) DWORD WINAPI main(LPVOID lpParam)
 
 
 	}
+
 	UINT uIndex;
 	POINT pCur;
 	GetCursorPos(&pCur);
@@ -754,6 +860,7 @@ __declspec(dllexport) DWORD WINAPI main(LPVOID lpParam)
 	{
 		DoAnimate(FALSE, ANIMTYPE_PREVIEW, &monitors.at(uIndex), TRUE);
 		ShowWindow(monitors.at(uIndex).hWnd, SW_SHOW);
+		SetForegroundWindow(monitors.at(uIndex).hWnd);
 	}
 	for (UINT z = 0; z < monitors.size(); ++z)
 	{
